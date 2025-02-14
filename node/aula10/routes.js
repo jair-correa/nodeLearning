@@ -2,9 +2,9 @@
 const express = require("express");
 //Cria variavel temporaria
 const route = express.Router();
-const homeController = require("./controllers/homeController");
-const myselfController = require("./controllers/myselfController");
-const contatoController = require("./controllers/contatoController");
+const homeController = require("./src/controllers/homeController");
+const myselfController = require("./src/controllers/myselfController");
+const contatoController = require("./src/controllers/contatoController");
 //Rotas da home
 route.get("/", homeController.homePage);
 route.post("/", homeController.fixPost);
