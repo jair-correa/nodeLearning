@@ -1,22 +1,22 @@
+require('dotenv').config();
+
 const express = require("express");
 const app = express();
 //chamar mongoose
 const mongoose = require("mongoose");
-const connectionString =
-  "mongodb+srv://jair-correa:08do09de1991CORREA@cluster0.sltmw.mongodb.net/DATABASE?retryWrites=true&w=majority&appName=Cluster0";
-//fazer conexao do mongoose
-mongoose
-  .connect(connectionString)
-  .then(() => {
-    console.log('Conectei a base de dados');
-    
-    app.emit("OK");//Cria sinal e esctuta para seguir com a conexao
-  }); //notifica sobre a conexao da base de dados
 
+mongoose.connect(process.env.CONNECTIONSTRING)
+  .then(() => {
+    app.emit("OK"); //Cria sinal e esctuta para seguir com a conexao
+  })
+  .catch(e => console.log(e));
+
+//notifica sobre a conexao da base de dados
 const routes = require("./routes");
 const path = require("path");
 //acesso por desetruturação
 const { middlewareGlobal } = require("./src/middlewares/middleware");
+const e = require("express");
 
 app.use(express.urlencoded({ extended: true }));
 
