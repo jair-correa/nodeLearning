@@ -4,7 +4,9 @@ const express = require("express");
 const app = express();
 const flash = require("connect-flash");
 const path = require("path");
-const { middlewareGlobal } = require("./src/middlewares/middleware");
+const helmet = require("helmet");
+const csrf = require("csurf");
+const { middlewareGlobal , checkCSRFError,csrfMiddleware} = require("./src/middlewares/middleware");
 const routes = require("./routes");
 const session = require("express-session");
 const MongoStore = require("connect-mongo"); // Corrigido
@@ -45,9 +47,12 @@ app.use(flash());
 // Configuração do view engine
 app.set("views", path.resolve(__dirname, "src", "views"));
 app.set("view engine", "ejs");
-
+app.use(helmet());
+app.use(csrf());
 // Usando middleware global e as rotas
 app.use(middlewareGlobal);
+app.use(checkCSRFError);
+app.use(csrfMiddleware);
 app.use(routes);
 
 // Iniciar o servidor após a conexão com o banco
