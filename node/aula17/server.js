@@ -6,56 +6,61 @@ const flash = require("connect-flash");
 const path = require("path");
 const helmet = require("helmet");
 const csrf = require("csurf");
-const { middlewareGlobal , checkCSRFError,csrfMiddleware} = require("./src/middlewares/middleware");
-const routes = require("./routes");
 const session = require("express-session");
 const MongoStore = require("connect-mongo"); // Corrigido
+const { middlewareGlobal, checkCSRFError, csrfMiddleware } = require("./src/middlewares/middleware");
+const routes = require("./routes");
 
-// Conectar ao banco de dados MongoDB
+// 🔹 Conectar ao MongoDB
 mongoose
-  .connect(process.env.CONNECTIONSTRING) // Conexão do mongoose com a string de conexão
+  .connect(process.env.CONNECTIONSTRING, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    app.emit("OK"); // Cria sinal para iniciar o servidor
+    app.emit("OK"); // Emitir sinal para iniciar o servidor
   })
-  .catch(e => console.log(e));
+  .catch(e => console.log("Erro ao conectar ao MongoDB:", e));
 
-// Middleware global para carregar as variáveis globais
-app.use(express.static(path.resolve(__dirname, "frontend")));
+// 🔹 Middlewares de segurança
+app.use(helmet());
 
-// Configuração do session com MongoStore
+// 🔹 Configuração da sessão
 app.use(
   session({
     secret: process.env.SESSION_SECRET, // Segredo da sessão
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.CONNECTIONSTRING, // Corrigido para passar a URL de conexão
-      collectionName: "sessions" // Nome da coleção para armazenar as sessões
+      mongoUrl: process.env.CONNECTIONSTRING, // Passa a URL de conexão corretamente
+      collectionName: "sessions", // Nome da coleção no MongoDB
     }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }, // 7 dia
-    httpOnly: true
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 dias
+      httpOnly: true,
+    },
   })
 );
 
-// Configurações do express
+// 🔹 Middlewares do Express
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static(path.resolve(__dirname, "public")));
 
-// Usando flash para mensagens
+// 🔹 Middleware de mensagens flash
 app.use(flash());
 
-// Configuração do view engine
+// 🔹 Configuração do motor de visualização
 app.set("views", path.resolve(__dirname, "src", "views"));
 app.set("view engine", "ejs");
-app.use(helmet());
+
+// 🔹 Middleware de proteção CSRF
 app.use(csrf());
-// Usando middleware global e as rotas
-app.use(middlewareGlobal);
 app.use(checkCSRFError);
 app.use(csrfMiddleware);
+
+// 🔹 Middleware global e rotas
+app.use(middlewareGlobal);
 app.use(routes);
 
-// Iniciar o servidor após a conexão com o banco
+// 🔹 Iniciar o servidor após a conexão com o banco
 app.on("OK", () => {
   app.listen(3000, () => {
     console.log("Servidor rodando na porta 3000 --> http://localhost:3000");
